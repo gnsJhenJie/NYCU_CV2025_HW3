@@ -8,7 +8,7 @@ MODEL:
   ROI_HEADS:
     NUM_CLASSES: 4
 SOLVER:
-  IMS_PER_BATCH: 8             # fits in 24 GB with AMP
+  IMS_PER_BATCH: 6             # fits in 24 GB with AMP
   BASE_LR: 0.0005
   MAX_ITER: 9000               # ≈ 50 epochs on 209 imgs with aug.
   STEPS: [6000, 8000]

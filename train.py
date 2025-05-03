@@ -9,6 +9,8 @@ from detectron2.data import DatasetCatalog, MetadataCatalog
 from detectron2.config import get_cfg
 from detectron2.data.datasets import register_coco_instances
 import random
+from utils.data_utils import MedMapper
+from detectron2.data import DatasetCatalog, MetadataCatalog, build_detection_train_loader
 
 
 def register_and_split(data_root: Path, val_ratio: float = 0.08):
@@ -47,13 +49,27 @@ def register_and_split(data_root: Path, val_ratio: float = 0.08):
     for name in ("med_seg_train", "med_seg_val"):
         MetadataCatalog.get(name).thing_classes = MetadataCatalog.get(
             full_name).thing_classes
+        MetadataCatalog.get(name).evaluator_type = "coco"
     print(
         f"Dataset split ➜ train:{len(train_dataset)}  val:{len(val_dataset)}")
 
 
+class Trainer(DefaultTrainer):
+    @classmethod
+    def build_train_loader(cls, cfg):
+        return build_detection_train_loader(
+            cfg, mapper=MedMapper(is_train=True))
+
+    @classmethod
+    def build_test_loader(cls, cfg, dataset_name):
+        return build_detection_train_loader(
+            cfg, mapper=MedMapper(is_train=False),
+            dataset_name=dataset_name)
+
+
 def setup_cfg(args):
     cfg = get_cfg()
-    cfg.merge_from_file("configs/mask_rcnn_R50_FPN_med.yaml")
+    cfg.merge_from_file(args.cfg_file)
     cfg.OUTPUT_DIR = args.output_dir
 
     # datasets
@@ -61,9 +77,8 @@ def setup_cfg(args):
     cfg.DATASETS.TEST = ("med_seg_val",)
 
     # solver overrides
-    cfg.SOLVER.IMS_PER_BATCH = args.batch_size
-
-    cfg.MODEL.WEIGHTS = "detectron2://ImageNetPretrained/MSRA/R-50.pkl"
+    if args.batch_size:
+        cfg.SOLVER.IMS_PER_BATCH = args.batch_size
 
     cfg.freeze()
     os.makedirs(cfg.OUTPUT_DIR, exist_ok=False)
@@ -73,9 +88,11 @@ def setup_cfg(args):
 def main(args):
     data_root = Path(args.data_root).resolve()
     register_and_split(data_root)
+
     cfg = setup_cfg(args)
     default_setup(cfg, args)
-    trainer = DefaultTrainer(cfg)
+
+    trainer = Trainer(cfg)
     trainer.resume_or_load(resume=False)
     trainer.train()
 
@@ -84,7 +101,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--data_root", default="./data", type=str)
     parser.add_argument("--output_dir", default="./outputs", type=str)
-    parser.add_argument("--batch_size", default=8, type=int)
+    parser.add_argument("--batch_size", default=6, type=int)
+    parser.add_argument(
+        "--cfg_file", default="configs/mask_rcnn_R101_FPN_med.yaml", type=str)
     parser.add_argument("--num_gpus", default=1, type=int)
     parser.add_argument("--num_machines", default=1, type=int)
     parser.add_argument("--machine_rank", default=0, type=int)
