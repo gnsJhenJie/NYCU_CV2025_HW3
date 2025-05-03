@@ -1,0 +1,31 @@
+# Detectron2 YAML – derived from COCO Mask R‑50‑FPN 3x, tuned for this homework.
+MODEL:
+  META_ARCHITECTURE: "GeneralizedRCNN"
+  WEIGHTS: "detectron2://ImageNetPretrained/MSRA/R-50.pkl"
+  MASK_ON: True
+  RESNETS:
+    DEPTH: 50
+  ROI_HEADS:
+    NUM_CLASSES: 4
+SOLVER:
+  IMS_PER_BATCH: 8             # fits in 24 GB with AMP
+  BASE_LR: 0.0005
+  MAX_ITER: 9000               # ≈ 50 epochs on 209 imgs with aug.
+  STEPS: [6000, 8000]
+  CHECKPOINT_PERIOD: 1000
+DATASETS:
+  TRAIN: ("med_seg_train",)
+  TEST: ()
+DATALOADER:
+  FILTER_EMPTY_ANNOTATIONS: True
+  NUM_WORKERS: 8
+INPUT:
+  MIN_SIZE_TRAIN: (512, 768, 896)
+  MAX_SIZE_TRAIN: 1536
+  MIN_SIZE_TEST: 512
+  MAX_SIZE_TEST: 2048
+  RANDOM_FLIP: "horizontal"
+  MASK_FORMAT: "bitmask"
+TEST:
+  EVAL_PERIOD: 1000
+VERSION: 2
