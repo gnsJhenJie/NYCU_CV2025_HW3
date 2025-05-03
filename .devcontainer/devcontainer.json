@@ -1,7 +1,7 @@
 {
     // For quick reference: https://containers.dev/implementors/json_reference/
     "name": "Pytorch GPU Eric CV2025 HW3",
-    "image": "nvcr.io/nvidia/pytorch:23.07-py3",
+    "image": "nvcr.io/nvidia/pytorch:24.03-py3",
     "runArgs": [
         "--gpus",
         "all",
