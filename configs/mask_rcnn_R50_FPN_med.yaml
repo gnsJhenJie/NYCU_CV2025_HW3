@@ -13,9 +13,6 @@ SOLVER:
   MAX_ITER: 9000               # ≈ 50 epochs on 209 imgs with aug.
   STEPS: [6000, 8000]
   CHECKPOINT_PERIOD: 1000
-DATASETS:
-  TRAIN: ("med_seg_train",)
-  TEST: ()
 DATALOADER:
   FILTER_EMPTY_ANNOTATIONS: True
   NUM_WORKERS: 8
