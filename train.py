@@ -10,7 +10,7 @@ from detectron2.config import get_cfg
 from detectron2.data.datasets import register_coco_instances
 import random
 from utils.data_utils import MedMapper
-from detectron2.data import DatasetCatalog, MetadataCatalog, build_detection_train_loader
+from detectron2.data import DatasetCatalog, MetadataCatalog, build_detection_train_loader, build_detection_test_loader
 
 
 def register_and_split(data_root: Path, val_ratio: float = 0.08):
@@ -62,9 +62,9 @@ class Trainer(DefaultTrainer):
 
     @classmethod
     def build_test_loader(cls, cfg, dataset_name):
-        return build_detection_train_loader(
-            cfg, mapper=MedMapper(is_train=False),
-            dataset_name=dataset_name)
+        return build_detection_test_loader(
+            cfg, dataset_name, mapper=MedMapper(is_train=False),
+        )
 
 
 def setup_cfg(args):
