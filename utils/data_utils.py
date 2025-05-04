@@ -33,8 +33,8 @@ class MedMapper:
             self.augmentations: List[T.Augmentation] = [
                 # multi‑scale resize (short edge)
                 T.ResizeShortestEdge(
-                    short_edge_length=[512, 768, 896, 1024],
-                    max_size=2048, sample_style="choice"),
+                    short_edge_length=[256, 384, 512],
+                    max_size=2500, sample_style="choice"),
                 # horizontal & vertical flip (independent probabilistic)
                 T.RandomFlip(prob=0.5, horizontal=True, vertical=False),
                 T.RandomFlip(prob=0.5, horizontal=False, vertical=True),
@@ -46,7 +46,7 @@ class MedMapper:
             ]
         else:
             self.augmentations = [T.ResizeShortestEdge(
-                short_edge_length=512, max_size=2048)]
+                short_edge_length=256, max_size=2500)]
         self.image_format = "BGR"
 
     def __call__(self, dataset_dict):
