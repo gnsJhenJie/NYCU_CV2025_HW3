@@ -13,7 +13,6 @@ from detectron2.modeling import GeneralizedRCNNWithTTA
 from detectron2.utils.visualizer import GenericMask
 from tqdm import tqdm
 from pycocotools import mask as mask_utils
-
 from utils.data_utils import rle_encode
 
 CATEGORY_ID_MAP = {0: 1, 1: 2, 2: 3, 3: 4}
@@ -23,14 +22,23 @@ def load_test_mapping(json_path: Path):
     return {item["file_name"]: item["id"] for item in json.loads(json_path.read_text())}
 
 
-def build_cfg(cfg_path: str, weights: str, score_thresh=0.4):
+def build_cfg(cfg_path: str, weights: str, score_thresh=0.4, enable_tta=False):
     cfg = get_cfg()
     cfg.merge_from_file(cfg_path)
     cfg.MODEL.WEIGHTS = weights
     cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = score_thresh
     cfg.INPUT.MIN_SIZE_TEST = 512
     cfg.INPUT.MAX_SIZE_TEST = 2048
-    cfg.freeze()
+
+    if enable_tta:
+        cfg.defrost()
+        cfg.TEST.AUG.ENABLED = True
+        cfg.TEST.AUG.FLIP = True
+        cfg.TEST.AUG.SCALE = (0.75, 1.0, 1.25)
+        cfg.freeze()
+    else:
+        cfg.freeze()
+
     return cfg
 
 
@@ -51,17 +59,12 @@ def run_inference(args):
     test_dir = data_root / "test_release"
     mapping = load_test_mapping(data_root / "test_image_name_to_ids.json")
 
-    cfg = build_cfg(args.cfg_file, args.weights, score_thresh=0.4)
+    cfg = build_cfg(args.cfg_file, args.weights,
+                    score_thresh=0.4, enable_tta=args.tta)
+
+    predictor = DefaultPredictor(cfg)
     if args.tta:
-        cfg.TEST.AUG = {
-            "ENABLED": True,
-            "FLIP": True,
-            "SCALE": (0.75, 1.0, 1.25),
-        }
-        predictor = GeneralizedRCNNWithTTA(
-            cfg, DefaultPredictor(cfg).model, tta_mapper=None)
-    else:
-        predictor = DefaultPredictor(cfg)
+        predictor.model = GeneralizedRCNNWithTTA(cfg, predictor.model)
 
     results = []
     for tif_path in tqdm(sorted(test_dir.glob("*.tif"))):
@@ -78,8 +81,7 @@ def run_inference(args):
 
         for m, s, c in zip(masks, scores, classes):
             rle = rle_encode(m)
-            bbox = mask_utils.toBbox(
-                mask_utils.frPyObjects(rle, *m.shape)).tolist()
+            bbox = mask_utils.toBbox(rle).tolist()
             results.append(
                 {
                     "image_id": mapping[tif_path.name],
