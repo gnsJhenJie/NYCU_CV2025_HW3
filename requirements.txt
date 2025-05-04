@@ -4,3 +4,4 @@ scikit-image==0.25.2
 tqdm
 numpy
 detectron2 @ git+https://github.com/facebookresearch/detectron2.git@536dc9d527074e3b15df5f6677ffe1f4e104a4ab
+imagecodecs==2025.3.30
