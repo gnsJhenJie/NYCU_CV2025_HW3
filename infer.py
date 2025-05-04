@@ -1,6 +1,7 @@
-"""Inference with optional Test‑Time Augmentation (flip+scale) & Mask Voting."""
+"""Inference with optional Test-Time Augmentation (flip+scale) & Mask Voting."""
 import argparse
 import json
+import zipfile
 from pathlib import Path
 from typing import List
 
@@ -92,9 +93,10 @@ def run_inference(args):
                 }
             )
 
-    out_path = Path(args.output_json)
-    out_path.write_text(json.dumps(results))
-    print(f"Saved submission ➜ {out_path}  (instances {len(results)})")
+    zip_path = Path(args.output_zip)
+    with zipfile.ZipFile(zip_path, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("test-results.json", json.dumps(results))
+    print(f"Saved submission ➜ {zip_path}  (instances {len(results)})")
 
 
 if __name__ == "__main__":
@@ -104,7 +106,9 @@ if __name__ == "__main__":
         "--weights", default="./outputs_R101/model_final.pth", type=str)
     parser.add_argument(
         "--cfg_file", default="configs/mask_rcnn_R101_FPN_med.yaml", type=str)
-    parser.add_argument("--output_json", default="test-results.json", type=str)
+    parser.add_argument(
+        "--output_zip", default="test-results.zip", type=str,
+        help="Output ZIP file name (will contain test-results.json)")
     parser.add_argument("--tta", action="store_true",
                         help="Enable flip+scale TTA")
     args = parser.parse_args()
