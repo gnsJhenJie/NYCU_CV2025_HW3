@@ -34,6 +34,7 @@ Key highlights
 ├── .devcontainer/          # VSCode GPU dev‑container (PyTorch 24.03)
 ├── hw3-sample-code/        # Sample code provided from course materials
 ├── requirements.txt        # Python dependencies
+├── analysis.ipynb          # iPython notebook for analysis
 └── README.md
 ```
 
@@ -126,13 +127,14 @@ python infer.py \
 
 ---
 
-## Baseline Results
+## Performance
 
 | Model               | Config                        | Public LB mAP |
 | ------------------- | ----------------------------- | ------------------------- |
 | Mask R‑CNN R50‑FPN  | `mask_rcnn_R50_FPN_med.yaml`  | 0.35                      |
 | Mask R‑CNN R101‑FPN | `mask_rcnn_R101_FPN_med.yaml` | **0.41**                  |
 
+![image](https://i.imgur.com/YYVuKKn.png)
 
 Training curves and more ablation results are provided in the report.
 
